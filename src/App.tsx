@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { createJSONStorage, persist } from 'zustand/middleware'
 import TaskCreator from "./components/Task-Creation"
 import TaskViewer from "./components/Task-Viewer"
+import TaskSelector from "./components/Task-Selector"
 
 
 // import TaskList from "./components/tasklist"
@@ -23,10 +24,12 @@ interface StoreState {
   inputTask: Task
   selectedStatus: TaskStatus
   setSelectedStatus: (status: TaskStatus) => void
+  editingField: { taskName: string, field: string } | null
+  setEditingField: ((taskName: string | null, field: keyof Task | null) => void)
   addTask: () => void
   removeTask: (name: string) => void
   setInputTask: (field: keyof Task, value: string) => void
-  updateTaskStatus: (name: string, status: TaskStatus) => void
+  updateTask: (name: string, updates: Partial<Task>) => void
 }
 
 export const useStore = create(
@@ -43,6 +46,14 @@ export const useStore = create(
       //SET SELECTED STATUS
       setSelectedStatus: (status) => set(() => ({ selectedStatus: status })),
 
+      //EDITING FIELD  
+
+      editingField: null,
+
+      //SET EDITING FIELD
+      setEditingField: (taskName, field) => set(() => ({
+        editingField: taskName && field ? { taskName, field } : null
+      })),
 
       // ADD TASK
       addTask: () => set((state) => {
@@ -69,9 +80,9 @@ export const useStore = create(
       })),
 
       //UPDATE TASK STATUS
-      updateTaskStatus: (name: string, status: TaskStatus) => set((state) => ({
+      updateTask: (name, updates) => set((state) => ({
         taskList: state.taskList.map(task =>
-          task.name === name ? { ...task, status } : task
+          task.name === name ? { ...task, ...updates } : task
         )
       })),
     }),
@@ -88,6 +99,7 @@ function App() {
 
   return (
     <div>
+      <TaskSelector />
       <TaskViewer />
       <TaskCreator />
     </div>

@@ -18,8 +18,6 @@ function TaskCreator() {
 
     return (
         <div>
-            <div>DESCRIPTION: {inputTask.description}</div>
-            <div>NAME: {inputTask.name}</div>
             <label htmlFor="input1">Task Name:</label>
             <input id="input1" value={inputTask.name} onChange={(e) => setInputTask('name', e.target.value)} />
             <label htmlFor="input2">Task Description:</label>

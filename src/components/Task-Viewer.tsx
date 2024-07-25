@@ -2,32 +2,51 @@ import { useStore } from "../App"
 
 type TaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Archived'
 
+type Task = {
+    name: string,
+    description: string
+    status: TaskStatus
+    theme: string
+}
+
 export default function TaskViewer() {
 
-    const { taskList, selectedStatus, setSelectedStatus } = useStore()
+    const {
+        taskList,
+        selectedStatus,
+        setSelectedStatus,
+        editingField,
+        setEditingField,
+        updateTask
+    } = useStore()
 
-    const statusOptions: TaskStatus[] = ['Pending', 'In Progress', 'Completed', 'Archived']
+    const handleEdit = (taskName: string, field: keyof Task, value: string) => {
+        updateTask(taskName, { [field]: value })
+        setEditingField(null, null)
+    }
 
     return (
         <div>
-            <div>
-                {statusOptions.map((status) => (
-                    <button
-                        key={status}
-                        onClick={() => setSelectedStatus(status)}
-                    >
-                        {status}
-                    </button>
-                ))}
-            </div>
             {taskList
                 .filter(task => task.status === selectedStatus)
                 .map(task => (
                     <div key={task.name}>
-                        <h3>{task.name}</h3>
-                        <p>{task.description}</p>
-                        <p>{task.status}</p>
-                        <p>{task.theme}</p>
+                        {(['name', 'description', 'status', 'theme'] as const).map((field) => (
+                            <div key={field}>
+                                {editingField?.taskName === task.name && editingField.field === field ? (
+                                    <input
+                                        value={task[field]}
+                                        onChange={(e) => handleEdit(task.name, field, e.target.value)}
+                                        onBlur={() => setEditingField(null, null)}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <p onClick={() => setEditingField(task.name, field)}>
+                                        {field}: {task[field]}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 ))
             }
