@@ -29,7 +29,7 @@ function TaskCreator() {
             <select
                 id='statusDropdown'
                 value={inputTask.status}
-                onChange={(e) => updateTaskStatus(inputTask.name, e.target.value as TaskStatus)}
+                onChange={(e) => setInputTask('status', e.target.value as TaskStatus)}
             >
                 <option value='Pending'>Pending</option>
                 <option value='In Progress'>In Progress</option>
