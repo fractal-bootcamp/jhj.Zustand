@@ -7,9 +7,9 @@ import TaskSelector from "./components/Task-Selector"
 
 // import TaskList from "./components/tasklist"
 
-type TaskStatus = '' | 'Pending' | 'In Progress' | 'Completed' | 'Archived'
+export type TaskStatus = '' | 'Pending' | 'In Progress' | 'Completed' | 'Archived'
 
-type Task = {
+export type Task = {
   name: string,
   description: string
   status: TaskStatus
@@ -17,9 +17,9 @@ type Task = {
 }
 
 // going to add statuses 
-type TaskList = Task[]
+export type TaskList = Task[]
 
-interface StoreState {
+export interface StoreState {
   taskList: TaskList
   inputTask: Task
   selectedStatus: TaskStatus

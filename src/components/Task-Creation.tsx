@@ -1,19 +1,11 @@
 import { useStore } from "../App"
 
-
-
-// type Task = {
-//     name: string,
-//     description: string
-// }
-// going to add statuses 
-// type TaskList = Task[]
 type TaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Archived'
 
 function TaskCreator() {
 
 
-    const { setInputTask, addTask, taskList, inputTask, updateTaskStatus } = useStore()
+    const { setInputTask, addTask, taskList, inputTask } = useStore()
 
 
     return (

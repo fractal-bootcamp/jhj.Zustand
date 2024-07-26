@@ -34,12 +34,24 @@ export default function TaskViewer() {
                         {(['name', 'description', 'status', 'theme'] as const).map((field) => (
                             <div key={field}>
                                 {editingField?.taskName === task.name && editingField.field === field ? (
-                                    <input
-                                        value={task[field]}
-                                        onChange={(e) => handleEdit(task.name, field, e.target.value)}
-                                        onBlur={() => setEditingField(null, null)}
-                                        autoFocus
-                                    />
+                                    field === 'theme' ?
+                                        (<select
+                                            value={task[field]}
+                                            onChange={(e) => handleEdit(task.name, field, e.target.value)}
+                                            onBlur={() => setEditingField(null, null)}
+                                            autoFocus
+                                        >
+                                            <option value='light'>Light</option>
+                                            <option value='dark'>Dark</option>
+                                        </select>
+                                        ) : (
+                                            <input
+                                                value={task[field]}
+                                                onChange={(e) => handleEdit(task.name, field, e.target.value)}
+                                                onBlur={() => setEditingField(null, null)}
+                                                autoFocus
+                                            />
+                                        )
                                 ) : (
                                     <p onClick={() => setEditingField(task.name, field)}>
                                         {field}: {task[field]}
