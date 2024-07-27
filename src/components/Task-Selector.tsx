@@ -1,5 +1,6 @@
 import { useStore } from "../App"
-type TaskStatus = '' | 'Pending' | 'In Progress' | 'Completed' | 'Archived'
+import { TaskStatus } from "../types"
+
 
 export default function TaskSelector() {
 
@@ -11,6 +12,7 @@ export default function TaskSelector() {
                 <button
                     key={status}
                     onClick={() => setSelectedStatus(status)}
+                    className="btn border btn-rounded"
                 >
                     {status}
                 </button>

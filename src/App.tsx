@@ -3,21 +3,8 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import TaskCreator from "./components/Task-Creation"
 import TaskViewer from "./components/Task-Viewer"
 import TaskSelector from "./components/Task-Selector"
+import { TaskList, Task, TaskStatus } from "./types"
 
-
-// import TaskList from "./components/tasklist"
-
-export type TaskStatus = '' | 'Pending' | 'In Progress' | 'Completed' | 'Archived'
-
-export type Task = {
-  name: string,
-  description: string
-  status: TaskStatus
-  theme: string
-}
-
-// going to add statuses 
-export type TaskList = Task[]
 
 export interface StoreState {
   taskList: TaskList
@@ -27,18 +14,25 @@ export interface StoreState {
   editingField: { taskName: string, field: string } | null
   setEditingField: ((taskName: string | null, field: keyof Task | null) => void)
   addTask: () => void
-  removeTask: (name: string) => void
+  removeTask: (id: string) => void
   setInputTask: (field: keyof Task, value: string) => void
   updateTask: (name: string, updates: Partial<Task>) => void
+  activeTab: 'create' | 'view'
+  setActiveTab: (tab: 'create' | 'view') => void
+  // delete a single task 
+  deleteAll: () => void
 }
 
 export const useStore = create(
   persist<StoreState>(
     (set) => ({
-      taskList: [],
-      inputTask: { name: '', description: '', status: '', theme: '' },
 
-      selectedStatus: 'Pending',
+      taskList: [],
+
+      //INPUT TASK INITIALIZATION
+      inputTask: { id: crypto.randomUUID(), name: 'Add task name...', description: 'Add description..', status: 'Pending', theme: 'light' },
+
+      selectedStatus: 'Pending' as TaskStatus,
 
       ///SET INPUT TASK
       setInputTask: (field, value) => set((state) => ({ inputTask: { ...state.inputTask, [field]: value } })),
@@ -70,22 +64,38 @@ export const useStore = create(
 
         return {
           taskList: [...state.taskList, state.inputTask], //append the tasklist array 
-          inputTask: { name: '', description: '', status: 'Pending', theme: '' } // reset the input tasks}
+          inputTask: { id: crypto.randomUUID(), name: 'Add task name..', description: 'Add description..', status: 'Pending' as TaskStatus, theme: 'light' } // reset the input tasks}
         }
       }),
 
       // REMOVE TASK
-      removeTask: (name: string) => set((state) => ({
-        taskList: state.taskList.filter(task => task.name !== name)
+      removeTask: (id: string) => set((state) => ({
+        taskList: state.taskList.filter(task => task.id !== id)
       })),
 
       //UPDATE TASK STATUS
-      updateTask: (name, updates) => set((state) => ({
-        taskList: state.taskList.map(task =>
-          task.name === name ? { ...task, ...updates } : task
+      updateTask: (id, updates) => set((state) => ({
+        taskList: state.taskList.map(task => // map over task listn and find the task with corresponding name
+          task.id === id ? { ...task, ...updates } : task // copy that task and append changes 
         )
       })),
+
+      //ACTIVE TAB
+      activeTab: 'create',
+
+      //SET ACTIVE TAB
+      setActiveTab: (tab: 'create' | 'view') => set(() => ({ activeTab: tab })),
+
+      // CLEAR STORAGE
+
+      deleteAll: () => {
+        useStore.persist.clearStorage();
+        console.log('delete');
+        window.location.reload();
+      },
+
     }),
+
     {
       name: 'task-storage',
       storage: createJSONStorage(() => localStorage)
@@ -97,11 +107,27 @@ export const useStore = create(
 
 function App() {
 
+  const { activeTab, setActiveTab, deleteAll } = useStore();
+
+  // const handleTabChange = (tab: 'create' | 'view') => {
+  //   setActiveTab(tab);
+  // };
+
   return (
     <div>
-      <TaskSelector />
-      <TaskViewer />
-      <TaskCreator />
+      <div>
+        <button className="btn border btn-rounded" onClick={() => setActiveTab('create')}>Create</button>
+        <button className="btn border btn-rounded" onClick={() => setActiveTab('view')}>View</button>
+        <button className="btn border btn-rounded bg-red-500 text-white" onClick={() => deleteAll()}>Delete All</button>
+      </div>
+      {activeTab === 'create' ? (
+        <TaskCreator />
+      ) : (
+        <>
+          <TaskSelector />
+          <TaskViewer />
+        </>
+      )}
     </div>
   )
 }

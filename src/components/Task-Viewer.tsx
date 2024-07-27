@@ -1,41 +1,9 @@
 import { useStore } from "../App"
+import { Task } from "../types";
+import { Fields, FieldType, Theme } from "../types";
+import themes from "../data/themes";
 
-enum TaskStatus {
-    Pending = 'Pending',
-    InProgress = 'In Progress',
-    Completed = 'Completed',
-    Archived = 'Archived'
-}
-
-type Theme = {
-    primary: string;
-    secondary: string;
-    accent: string;
-    background: string;
-    text: string;
-}
-
-type Task = {
-    name: string,
-    description: string
-    status: TaskStatus
-    theme: Theme | string
-}
-
-const lightTheme: Theme = {
-    primary: '#3498db',
-    secondary: '#2ecc71',
-    accent: '#e74c3c',
-    background: '#ecf0f1',
-    text: '#2c3e50',
-}
-
-enum FieldType {
-    Simple = 'simple',
-    Dropdown = 'dropdown'
-}
-
-const fields = [{
+export const fields: Fields = [{
     fieldName: 'name',
     fieldType: FieldType.Simple
 }, {
@@ -55,9 +23,15 @@ const fields = [{
     fieldType: FieldType.Dropdown,
     options: [
         { value: 'light', text: 'Light' },
-        { value: 'dark', text: 'Dark' }
+        { value: 'dark', text: 'Dark' },
+        { value: 'custom', text: 'Custom' }
     ]
-},] as const
+},
+] as const
+
+const getTheme = (task: Task): Theme => {
+    return themes.find(theme => theme.name === task.theme) || themes[0];
+}
 
 export default function TaskViewer() {
 
@@ -69,49 +43,60 @@ export default function TaskViewer() {
         updateTask
     } = useStore()
 
-
+    console.log(taskList)
 
     const handleEdit = (taskName: string, field: keyof Task, value: string) => {
         updateTask(taskName, { [field]: value })
-        setEditingField(null, null)
+        // setEditingField(null, null)
     }
 
+    const renderInput = (task: Task, fields: Fields) => {
+        return (
+
+            fields.map((field) => (
+                <div key={field.fieldName} className="mb-2">
+                    {editingField?.taskName === task.name && editingField.field === field.fieldName ? (
+                        field.fieldType === FieldType.Dropdown ? ( //if fieldtype is dropdown render dropdown
+                            <select
+                                value={task[field.fieldName as keyof Task]}
+                                onChange={(e) => handleEdit(task.id, field.fieldName as keyof Task, e.target.value)}
+                                onBlur={() => setEditingField(null, null)}
+                                autoFocus
+                                className="w-full p-2 border rounded"
+                            >
+                                {field.options?.map((option) => (
+                                    <option key={option.value} value={option.value}>{option.text}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input //else render and input 
+                                value={task[field.fieldName as keyof Task]}
+                                onChange={(e) => handleEdit(task.id, field.fieldName as keyof Task, e.target.value)}
+                                onBlur={() => setEditingField(null, null)}
+                                autoFocus
+                                className="w-full p-2 border rounded"
+                            />
+                        )
+                    ) : (
+                        <p onClick={() => setEditingField(task.name, field.fieldName as keyof Task)} className="cursor-pointer">
+                            <span className="font-semibold">{field.fieldName}:</span> {task[field.fieldName as keyof Task]}
+                        </p> //WTF IS THIS DOING AGAIN??
+                    )}
+                </div>
+            ))
+        )
+    }
+
+
     return (
-        <div>
+        <div className="space-y-4">
             {taskList
                 .filter(task => task.status === selectedStatus)
                 .map(task => (
-                    <div key={task.name} style={{ background: task.theme.background }}>
-                        {fields.map((field) => (
-                            <div key={field.fieldName}>
-                                {editingField?.taskName === task.name && editingField.field === field.fieldName ? (
-                                    field.fieldType === FieldType.Dropdown ?
-                                        (<select
-                                            value={task[field.fieldName]}
-                                            onChange={(e) => handleEdit(task.name, field.fieldName, e.target.value)}
-                                            onBlur={() => setEditingField(null, null)}
-                                            autoFocus
-                                        >
-                                            {field.options.map((option) => { return <option value={option.value}>{option.text}</option> })}
-                                        </select>
-                                        ) : (
-                                            <input
-                                                value={task[field.fieldName]}
-                                                onChange={(e) => handleEdit(task.name, field.fieldName, e.target.value)}
-                                                onBlur={() => setEditingField(null, null)}
-                                                autoFocus
-                                            />
-                                        )
-                                ) : (
-                                    <p onClick={() => setEditingField(task.name, field.fieldName)}>
-                                        {field.fieldName}: {task[field.fieldName]}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
+                    <div key={task.id} className="p-4 rounded-lg shadow" style={{ background: getTheme(task).background }}>
+                        {renderInput(task, fields)}
                     </div>
-                ))
-            }
+                ))}
         </div>
     )
 }
